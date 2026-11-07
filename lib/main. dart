@@ -1,0 +1,56 @@
+import 'package:flutter/material.dart';
+
+import 'core/app_colors.dart';
+import 'data/inventory_scope.dart';
+import 'data/inventory_store.dart';
+import 'screens/root_shell.dart';
+
+/// App entry point.
+Future<void> main() async {
+  // Needed because we do async work (loading saved data) before runApp.
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final store = InventoryStore();
+  await store.load(); // read saved stock from the phone
+
+  runApp(StockFlowApp(store: store));
+}
+
+class StockFlowApp extends StatelessWidget {
+  final InventoryStore store;
+  const StockFlowApp({super.key, required this.store});
+
+  @override
+  Widget build(BuildContext context) {
+    // InventoryScope sits ABOVE MaterialApp so every screen, dialog and
+    // bottom sheet can reach the store.
+    return InventoryScope(
+      store: store,
+      child: MaterialApp(
+        title: 'Stock Flow',
+        debugShowCheckedModeBanner: false,
+
+        // Light theme
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+          scaffoldBackgroundColor: AppColors.bg,
+        ),
+
+        // Dark theme
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            brightness: Brightness.dark,
+          ),
+          scaffoldBackgroundColor: AppColors.darkBg,
+        ),
+
+        // Follow the phone's light/dark setting
+        themeMode: ThemeMode.system,
+        home: const RootShell(),
+      ),
+    );
+  }
+}
